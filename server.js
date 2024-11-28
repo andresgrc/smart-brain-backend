@@ -8,26 +8,27 @@ const signin = require('./controllers/signin');
 const profile = require('./controllers/profile');
 const image = require('./controllers/image');
 
-// Database connection setup
 const db = knex({
   client: 'pg',
   connection: {
-    connectionString: process.env.DATABASE_URL, // Render's database URL
+    connectionString: process.env.DATABASE_URL,
     ssl: {
-      rejectUnauthorized: false, // Ensure compatibility with Render's Postgres
+      rejectUnauthorized: false, // Ensure compatibility with Heroku's Postgres
     },
+    host: process.env.DATABASE_HOST,
+    port: 5432,
+    user: process.env.DATABASE_USER,
+    password: process.env.DATABASE_PW,
+    database: process.env.DATABASE_DB
   },
 });
 
 app.use(express.json());
 app.use(cors());
 
-// Health check endpoint
 app.get('/', (req, res) => {
   res.send('It is working!');
 });
-
-// Endpoints for application features
 app.post('/signin', (req, res) => signin.handleSignin(req, res, db, bcrypt));
 app.post('/register', (req, res) =>
   register.handleRegister(req, res, db, bcrypt)
@@ -36,8 +37,6 @@ app.get('/profile/:id', (req, res) => profile.handleProfileGet(req, res, db));
 app.put('/image', (req, res) => image.handleImage(req, res, db));
 app.post('/imageurl', (req, res) => image.handleApiCall(req, res)); // Clarifai API call route
 
-// Start the server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`App is running on port ${PORT}`);
+app.listen(process.env.PORT || 3000, () => {
+  console.log(`App is running on port ${process.env.PORT}`);
 });
