@@ -11,22 +11,27 @@ const image = require('./controllers/image');
 const db = knex({
   client: 'pg',
   connection: {
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false, // Ensure compatibility with secure database connections
+    },
     host: process.env.DATABASE_HOST,
-    port: process.env.DATABASE_PORT,
+    port: 5432,
     user: process.env.DATABASE_USER,
     password: process.env.DATABASE_PW,
     database: process.env.DATABASE_DB,
-    ssl: {
-      rejectUnauthorized: false, // Required for Render-hosted Postgres
-    },
   },
 });
 
+// Log query errors
+db.on('query-error', (error, obj) => {
+  console.error('Database query error:', error.message, obj);
+});
 
+// Test database connection
 db.raw('SELECT 1')
-  .then(() => console.log('Database connected'))
-  .catch((err) => console.error('Database connection error:', err.message));
-
+  .then(() => console.log('Database connected successfully'))
+  .catch((err) => console.error('Database connection failed:', err.message));
 
 app.use(express.json());
 app.use(cors());
