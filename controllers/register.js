@@ -1,34 +1,53 @@
 const handleRegister = (req, res, db, bcrypt) => {
 	const { name, email, password } = req.body;
-	if(!name || !email || !password) {
-		return res.status(400).json('incorrect form submission');
+  
+	// Validate inputs
+	if (!name || !email || !password) {
+	  return res.status(400).json('Incorrect form submission');
 	}
+  
 	const hash = bcrypt.hashSync(password);
-		db.transaction(trx => {
-			trx.insert({
-				hash: hash,
-				email: email
-			})
-			.into('login')
-			.returning('email')
-			.then(loginEmail => {
-				return trx('users')
-				.returning('*')
-				.insert({
-					email: loginEmail[0].email,
-					name: name,
-					joined: new Date()
-				})
-				.then(user => {
-					res.json(user[0]);
-				})
-			})
-			.then(trx.commit)
-			.catch(trx.rollback)
+  
+	db.transaction((trx) => {
+	  trx('login')
+		.insert({
+		  hash: hash,
+		  email: email,
 		})
-	.catch(_err => res.status(400).json('unable to register'))
-}
-
-module.exports = {
-	handleRegister: handleRegister
-};
+		.returning('email')
+		.then((loginEmail) => {
+		  // Ensure loginEmail is valid
+		  const emailValue = Array.isArray(loginEmail) ? loginEmail[0] : loginEmail;
+  
+		  return trx('users')
+			.returning('*')
+			.insert({
+			  email: emailValue,
+			  name: name,
+			  joined: new Date(),
+			})
+			.then((user) => {
+			  // Ensure user is valid
+			  if (user.length) {
+				res.json(user[0]);
+			  } else {
+				throw new Error('User creation failed');
+			  }
+			});
+		})
+		.then(trx.commit)
+		.catch((err) => {
+		  trx.rollback();
+		  console.error('Transaction error:', err.message);
+		  res.status(400).json('Unable to register');
+		});
+	}).catch((err) => {
+	  console.error('Database transaction error:', err.message);
+	  res.status(500).json('Database error');
+	});
+  };
+  
+  module.exports = {
+	handleRegister,
+  };
+  
