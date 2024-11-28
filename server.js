@@ -11,17 +11,17 @@ const image = require('./controllers/image');
 const db = knex({
   client: 'pg',
   connection: {
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-      rejectUnauthorized: false, // Ensure compatibility with Heroku's Postgres
-    },
     host: process.env.DATABASE_HOST,
-    port: 5432,
+    port: process.env.DATABASE_PORT,
     user: process.env.DATABASE_USER,
     password: process.env.DATABASE_PW,
-    database: process.env.DATABASE_DB
+    database: process.env.DATABASE_DB,
+    ssl: {
+      rejectUnauthorized: false, // Required for Render-hosted Postgres
+    },
   },
 });
+
 
 db.raw('SELECT 1')
   .then(() => console.log('Database connected'))
