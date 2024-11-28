@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const CLARIFAI_API_KEY = 'fa8e58ad34254e81a699b9915d980346'; // Use environment variables for security
+const CLARIFAI_API_KEY = process.env.CLARIFAI_API_KEY; // Use environment variables for security
 const CLARIFAI_MODEL_ID = 'face-detection';
 const CLARIFAI_URL = `https://api.clarifai.com/v2/models/${CLARIFAI_MODEL_ID}/outputs`;
 

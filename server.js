@@ -15,6 +15,11 @@ const db = knex({
     ssl: {
       rejectUnauthorized: false, // Ensure compatibility with Heroku's Postgres
     },
+    host: process.env.DATABASE_HOST,
+    port: 5432,
+    user: process.env.DATABAE_USER,
+    password: process.env.DATABASE_PW,
+    database: process.env.DATABASE_DB
   },
 });
 
