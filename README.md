@@ -1,13 +1,2 @@
-# SmartBrain-api - v1
-Final project for ZTM course 
-
-1. Clone this repo
-2. Run `npm install`
-3. Run `npm start`
-4. Enter the details for your own databse in `server.js`
-
-** Make sure you use postgreSQL instead of mySQL for this code base.
-
-*visist https://zerotomastery.io/ for more*
-
 # smart-brain-backend
+#### This repository hosts the Express.js-based backend for the Face Recognition App. It manages user authentication, handles requests to the Clarifai API, and tracks user entries using a PostgreSQL database. The backend ensures seamless communication between the frontend and third-party APIs while maintaining secure data handling.
