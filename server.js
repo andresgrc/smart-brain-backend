@@ -23,6 +23,11 @@ const db = knex({
   },
 });
 
+db.raw('SELECT 1')
+  .then(() => console.log('Database connected'))
+  .catch((err) => console.error('Database connection error:', err.message));
+
+
 app.use(express.json());
 app.use(cors());
 
