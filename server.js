@@ -37,15 +37,7 @@ app.use(express.json()); // Parse JSON request bodies
 
 // Allow all origins in CORS configuration
 // Custom CORS Middleware
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*'); // Allow all origins
-  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
-  if (req.method === 'OPTIONS') {
-    return res.status(204).end(); // End preflight request
-  }
-  next();
-});
+app.use(cors());
 
 // Log each incoming request for debugging
 app.use((req, res, next) => {
