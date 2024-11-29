@@ -29,22 +29,24 @@ db.raw('SELECT 1')
   .then(() => console.log('Database connected successfully'))
   .catch((err) => {
     console.error('Database connection failed:', err.message);
-    process.exit(1); // Exit if the database connection fails
+    process.exit(1); // Exit process if the database connection fails
   });
 
 // Middleware
 app.use(express.json()); // Parse JSON request bodies
+
 app.use(
   cors({
     origin: 'https://smart-brain-frontend-kw4t.onrender.com', // Allow specific frontend origin
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: 'Content-Type',
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'], // Specify allowed HTTP methods
+    allowedHeaders: ['Content-Type'], // Specify allowed headers
   })
 );
 
-// Routes
+// Define Routes
 app.get('/', (req, res) => {
-  res.send('It is working!');
+  console.log('Root endpoint hit');
+  res.status(200).send('It is working!');
 });
 
 app.post('/signin', (req, res) => {
@@ -58,7 +60,8 @@ app.post('/register', (req, res) => {
 });
 
 app.get('/profile/:id', (req, res) => {
-  console.log('Profile endpoint hit with ID:', req.params.id);
+  const { id } = req.params;
+  console.log(`Profile endpoint hit with ID: ${id}`);
   profile.handleProfileGet(req, res, db);
 });
 
