@@ -8,50 +8,43 @@ const handleRegister = (req, res, db, bcrypt) => {
 	}
   
 	try {
-	  const hash = bcrypt.hashSync(password);
+	  // Hash the password
+	  const hash = bcrypt.hashSync(password, 10); // Ensure password and salt are provided
   
-	  db.transaction(async (trx) => {
-		try {
-		  // Insert into login table
-		  const loginEmail = await trx('login')
-			.insert({
-			  hash: hash,
-			  email: email,
-			})
-			.returning('email');
+	  // Transaction for inserting data into 'login' and 'users' tables
+	  db.transaction((trx) => {
+		trx('login')
+		  .insert({
+			hash: hash,
+			email: email,
+		  })
+		  .returning('email')
+		  .then((loginEmail) => {
+			console.log('Email inserted into login table:', loginEmail);
   
-		  console.log('Email inserted into login table:', loginEmail);
-  
-		  // Ensure loginEmail is valid
-		  const emailValue = Array.isArray(loginEmail) ? loginEmail[0] : loginEmail;
-  
-		  // Insert into users table
-		  const user = await trx('users')
-			.insert({
-			  email: emailValue,
-			  name: name,
-			  joined: new Date(),
-			})
-			.returning('*');
-  
-		  console.log('User inserted into users table:', user);
-  
-		  // Ensure user is valid
-		  if (user.length) {
-			res.json(user[0]);
-		  } else {
-			console.error('User creation failed: No user returned from query');
-			throw new Error('User creation failed');
-		  }
-  
-		  // Commit transaction
-		  await trx.commit();
-		} catch (error) {
-		  // Rollback transaction in case of error
-		  await trx.rollback();
-		  console.error('Transaction rollback due to error:', error.message);
-		  res.status(400).json('Unable to register');
-		}
+			return trx('users')
+			  .returning('*')
+			  .insert({
+				email: loginEmail[0], // Ensure valid email is used
+				name: name,
+				joined: new Date(),
+			  })
+			  .then((user) => {
+				console.log('User inserted into users table:', user);
+				if (user.length) {
+				  res.json(user[0]);
+				} else {
+				  console.error('User creation failed: No user returned from query');
+				  throw new Error('User creation failed');
+				}
+			  });
+		  })
+		  .then(trx.commit)
+		  .catch((err) => {
+			trx.rollback();
+			console.error('Transaction rollback due to error:', err.message);
+			res.status(400).json('Unable to register');
+		  });
 	  }).catch((err) => {
 		console.error('Database transaction error:', err.message);
 		res.status(500).json('Database error');
