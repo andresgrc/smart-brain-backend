@@ -7,52 +7,59 @@ const handleRegister = (req, res, db, bcrypt) => {
 	  return res.status(400).json('Incorrect form submission');
 	}
   
-	const hash = bcrypt.hashSync(password);
+	try {
+	  const hash = bcrypt.hashSync(password);
   
-	db.transaction((trx) => {
-	  trx('login')
-		.insert({
-		  hash: hash,
-		  email: email,
-		})
-		.returning('email')
-		.then((loginEmail) => {
-		  // Log email returned
+	  db.transaction(async (trx) => {
+		try {
+		  // Insert into login table
+		  const loginEmail = await trx('login')
+			.insert({
+			  hash: hash,
+			  email: email,
+			})
+			.returning('email');
+  
 		  console.log('Email inserted into login table:', loginEmail);
   
 		  // Ensure loginEmail is valid
 		  const emailValue = Array.isArray(loginEmail) ? loginEmail[0] : loginEmail;
   
-		  return trx('users')
-			.returning('*')
+		  // Insert into users table
+		  const user = await trx('users')
 			.insert({
 			  email: emailValue,
 			  name: name,
 			  joined: new Date(),
 			})
-			.then((user) => {
-			  // Log user creation
-			  console.log('User inserted into users table:', user);
+			.returning('*');
   
-			  // Ensure user is valid
-			  if (user.length) {
-				res.json(user[0]);
-			  } else {
-				console.error('User creation failed: No user returned from query');
-				throw new Error('User creation failed');
-			  }
-			});
-		})
-		.then(trx.commit)
-		.catch((err) => {
-		  trx.rollback();
-		  console.error('Transaction rollback due to error:', err.message);
+		  console.log('User inserted into users table:', user);
+  
+		  // Ensure user is valid
+		  if (user.length) {
+			res.json(user[0]);
+		  } else {
+			console.error('User creation failed: No user returned from query');
+			throw new Error('User creation failed');
+		  }
+  
+		  // Commit transaction
+		  await trx.commit();
+		} catch (error) {
+		  // Rollback transaction in case of error
+		  await trx.rollback();
+		  console.error('Transaction rollback due to error:', error.message);
 		  res.status(400).json('Unable to register');
-		});
-	}).catch((err) => {
-	  console.error('Database transaction error:', err.message);
-	  res.status(500).json('Database error');
-	});
+		}
+	  }).catch((err) => {
+		console.error('Database transaction error:', err.message);
+		res.status(500).json('Database error');
+	  });
+	} catch (err) {
+	  console.error('Error during hashing or transaction setup:', err.message);
+	  res.status(500).json('Internal server error');
+	}
   };
   
   module.exports = {
