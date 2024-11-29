@@ -48,7 +48,7 @@ app.get('/', (req, res) => {
   res.status(200).send('It is working!');
 });
 
-// Integrated signin logic directly into the route
+// Integrated /signin logic directly into the route
 app.post('/signin', (req, res) => {
   console.log('Signin endpoint hit');
   const { email, password } = req.body;
@@ -75,32 +75,39 @@ app.post('/signin', (req, res) => {
         return res.status(400).json('Wrong credentials');
       }
 
-      const isValid = bcrypt.compareSync(password, data[0].hash);
+      // Compare hashed password
+      bcrypt.compare(password, data[0].hash, (err, result) => {
+        if (err) {
+          console.error('Error during password comparison:', err.message);
+          return res.status(500).json('Error during signin');
+        }
 
-      if (isValid) {
-        return db
-          .select('*')
-          .from('users')
-          .where('email', '=', email)
-          .then((user) => {
-            // Log user data retrieved
-            console.log('User data fetched:', user);
+        if (result) {
+          // Fetch user details from the users table
+          return db
+            .select('*')
+            .from('users')
+            .where('email', '=', email)
+            .then((user) => {
+              // Log user data retrieved
+              console.log('User data fetched:', user);
 
-            if (user.length) {
-              res.json(user[0]);
-            } else {
-              console.error('Signin error: User not found in users table');
-              res.status(400).json('Unable to get user');
-            }
-          })
-          .catch((err) => {
-            console.error('Database error while fetching user:', err.message);
-            res.status(500).json('Error fetching user');
-          });
-      } else {
-        console.error('Signin error: Invalid password');
-        res.status(400).json('Wrong credentials');
-      }
+              if (user.length) {
+                res.json(user[0]);
+              } else {
+                console.error('Signin error: User not found in users table');
+                res.status(400).json('Unable to get user');
+              }
+            })
+            .catch((err) => {
+              console.error('Database error while fetching user:', err.message);
+              res.status(500).json('Error fetching user');
+            });
+        } else {
+          console.error('Signin error: Invalid password');
+          res.status(400).json('Wrong credentials');
+        }
+      });
     })
     .catch((err) => {
       console.error('Database query error during signin:', err.message);
