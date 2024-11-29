@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const bcrypt = require('bcrypt'); // Correct bcrypt import
+const bcrypt = require('bcrypt');
 const cors = require('cors');
 const knex = require('knex');
 const register = require('./controllers/register');
@@ -35,18 +35,14 @@ db.raw('SELECT 1')
 // Middleware
 app.use(express.json()); // Parse JSON request bodies
 
-// Allow all origins in CORS configuration
-app.use(
-  cors({
-    origin: '*', // Allow requests from all origins
-    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'], // Specify allowed HTTP methods
-    allowedHeaders: ['Content-Type', 'Authorization'], // Include Authorization header
-  })
-);
-
-// Log each incoming request for debugging
+// Custom CORS Middleware
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path} - Body:`, req.body || 'No body');
+  res.header('Access-Control-Allow-Origin', '*'); // Allow all origins
+  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end(); // End preflight request
+  }
   next();
 });
 
@@ -80,18 +76,6 @@ app.put('/image', (req, res) => {
 app.post('/imageurl', (req, res) => {
   console.log('Image URL endpoint hit with body:', req.body);
   image.handleApiCall(req, res);
-});
-
-// Catch-all route for undefined endpoints
-app.all('*', (req, res) => {
-  console.error(`Invalid route: ${req.method} ${req.path}`);
-  res.status(404).json({ error: 'Route not found' });
-});
-
-// Error-handling middleware for unhandled errors
-app.use((err, req, res, next) => {
-  console.error('Unhandled server error:', err.message);
-  res.status(500).json({ error: 'Internal Server Error' });
 });
 
 // Start server
