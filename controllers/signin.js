@@ -7,13 +7,12 @@ const handleSignin = (db, bcrypt) => (req, res) => {
 	  return res.status(400).json('Incorrect form submission');
 	}
   
-	console.log(`Signin attempt for email: ${email}`); // Log email being signed in
-  
+	// Query login table
 	db.select('email', 'hash')
 	  .from('login')
 	  .where('email', '=', email)
 	  .then((data) => {
-		if (data.length === 0) {
+		if (!data.length) {
 		  console.error('Signin error: Email not found');
 		  return res.status(400).json('Wrong credentials');
 		}
@@ -21,15 +20,13 @@ const handleSignin = (db, bcrypt) => (req, res) => {
 		const isValid = bcrypt.compareSync(password, data[0].hash);
   
 		if (isValid) {
-		  console.log(`Password valid for email: ${email}`); // Log valid password
-  
 		  return db
 			.select('*')
 			.from('users')
 			.where('email', '=', email)
 			.then((user) => {
 			  if (user.length) {
-				console.log(`User data retrieved: ${JSON.stringify(user[0])}`); // Log user data
+				console.log('Signin successful for email:', email);
 				res.json(user[0]);
 			  } else {
 				console.error('Signin error: User not found in users table');

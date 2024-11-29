@@ -35,9 +35,10 @@ db.raw('SELECT 1')
 // Middleware
 app.use(express.json()); // Parse JSON request bodies
 
+// Allow all origins in CORS configuration
 app.use(
   cors({
-    origin: 'https://smart-brain-frontend-kw4t.onrender.com', // Allow specific frontend origin
+    origin: '*', // Allow requests from all origins
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'], // Specify allowed HTTP methods
     allowedHeaders: ['Content-Type'], // Specify allowed headers
   })
