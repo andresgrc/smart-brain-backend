@@ -12,8 +12,8 @@ const handleApiCall = (req, res) => {
       CLARIFAI_URL,
       {
         user_app_id: {
-          user_id: 'clarifai', // Replace with your user ID
-          app_id: 'main', // Replace with your app ID
+          user_id: 'andresgrc', // Replace with your user ID
+          app_id: 'smart-brain', // Replace with your app ID
         },
         inputs: [
           {
